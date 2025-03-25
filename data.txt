@@ -1,0 +1,9 @@
+Category;Process;Activity;Procedure;Support;Modele
+Management;M1;Activity A;Procedure 1.1;Support Doc X;
+Management;M1;Activity A;Procedure 1.1;;Model Template Y
+Management;M1;Activity A;Procedure 1.1;Another Support File;
+Management;M1;Activity A;Procedure 1.2;;Model Form Z
+Management;M1;Activity B;Procedure 2.1;Guideline Doc P;
+Management;M2;Step One;Standard Protocol;Reference Material Q;
+Management;M2;Step One;Standard Protocol;;Empty Template
+New Category;New Process;First Step;Initial Action;Information Document A;
