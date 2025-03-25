@@ -186,6 +186,14 @@
       }
     }
 
+    function unfreezeNodePosition() {
+      if (selectedNodeId) {
+        nodes.update({ id: selectedNodeId, fixed: false });
+      } else {
+        alert("Please select a node to unfreeze its position.");
+      }
+    }
+
     function dropNodeLower() {
       if (selectedNodeId) {
         const node = nodes.get(selectedNodeId);
@@ -232,6 +240,7 @@
     <button onclick="deleteNode()">Delete Node</button>
     <button onclick="changeNodeColor()">Change Node Color</button>
     <button onclick="freezeNodePosition()">Freeze Node</button>
+    <button onclick="unfreezeNodePosition()">Unfreeze Node</button>
     <button onclick="dropNodeLower()">Drop Node Lower</button>
     <button onclick="saveData()">Save</button>
     <button onclick="loadData()">Load</button>
