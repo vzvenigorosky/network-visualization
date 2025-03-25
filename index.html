@@ -122,6 +122,13 @@
         alert("Please select a node to change its color.");
       }
     }
+    function saveData() {
+  const nodesToSave = nodes.get(); // Get all node items as an array
+  const edgesToSave = edges.get(); // Get all edge items as an array
+  const dataToStore = JSON.stringify({ nodes: nodesToSave, edges: edgesToSave });
+  localStorage.setItem('networkData', dataToStore);
+  alert('Network data saved to local storage.');
+}
   </script>
 
   <div>
@@ -129,6 +136,7 @@
     <button onclick="renameNode()">Rename Node</button>
     <button onclick="deleteNode()">Delete Node</button>
     <button onclick="changeNodeColor()">Change Node Color</button>
+    <button onclick="saveData()">Save</button>
   </div>
 
 </body>
