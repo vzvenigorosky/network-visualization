@@ -22,7 +22,7 @@
   <div id="mynetwork"></div>
 
   <script type="text/javascript">
-    const nodesData = [{ id: 1, label: 'StrasGene', level: 0, shape: 'box', color: '#f0f8ff', expanded: true }];
+    const nodesData = [{ id: 1, label: 'StrasGene', level: 0, shape: 'box', color: '#f0f8ff', expanded: true, fixed: false }];
     const edgesData = [];
 
     const nodes = new vis.DataSet(nodesData);
@@ -57,37 +57,24 @@
         dragNodes: true,
         selectable: true,
         hover: true
+      },
+      physics: {
+        enabled: true,
+        stabilization: {
+          enabled: true,
+          iterations: 100,
+          fit: true
+        }
       }
     };
 
     const network = new vis.Network(container, data, options);
-   
+
     let selectedNodeId = null;
 
     network.on("click", function (params) {
       if (params.nodes.length === 1) {
         selectedNodeId = params.nodes[0];
-
-        // Check if Shift key is pressed
-        if (params.event.shiftKey) {
-          // Toggle the pinned state (or fixed position) of the clicked node
-          const node = nodes.get(selectedNodeId);
-          const isPinned = node.fixed || false;
-
-          // Toggle the fixed state
-          nodes.update({
-            id: selectedNodeId,
-            fixed: !isPinned // Toggle the "pinned" state
-          });
-
-          // Optionally, you can update the node's appearance (e.g., change color) when pinned
-          nodes.update({
-            id: selectedNodeId,
-            color: !isPinned ? '#f0e68c' : '#f0f8ff' // Change color to indicate pinned state
-          });
-
-          console.log(`Node ${selectedNodeId} pinned: ${!isPinned}`);
-        }
       } else {
         selectedNodeId = null;
       }
@@ -112,7 +99,7 @@
           const maxExistingId = nodes.getIds().reduce((max, id) => Math.max(max, id), 0);
           nodeIdCounter = Math.max(nodeIdCounter, maxExistingId + 1);
           const newId = nodeIdCounter++;
-          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1, shape: 'box', color: '#ffffff', expanded: true });
+          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1, shape: 'box', color: '#ffffff', expanded: true, fixed: false });
           edges.add({ from: selectedNodeId, to: newId });
           network.fit();
         }
@@ -191,6 +178,28 @@
       return descendants;
     }
 
+    function freezeNodePosition() {
+      if (selectedNodeId) {
+        nodes.update({ id: selectedNodeId, fixed: true });
+      } else {
+        alert("Please select a node to freeze its position.");
+      }
+    }
+
+    function dropNodeLower() {
+      if (selectedNodeId) {
+        const node = nodes.get(selectedNodeId);
+        if (node && node.level !== undefined) {
+          nodes.update({ id: selectedNodeId, level: node.level + 1 });
+          network.fit();
+        } else {
+          alert("Selected node does not have a level property or is the root node.");
+        }
+      } else {
+        alert("Please select a node to drop lower.");
+      }
+    }
+
     function saveData() {
       const nodesToSave = nodes.get();
       const edgesToSave = edges.get();
@@ -222,6 +231,8 @@
     <button onclick="renameNode()">Rename Node</button>
     <button onclick="deleteNode()">Delete Node</button>
     <button onclick="changeNodeColor()">Change Node Color</button>
+    <button onclick="freezeNodePosition()">Freeze Node</button>
+    <button onclick="dropNodeLower()">Drop Node Lower</button>
     <button onclick="saveData()">Save</button>
     <button onclick="loadData()">Load</button>
   </div>
