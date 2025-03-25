@@ -10,6 +10,10 @@
       height: 600px;
       border: 1px solid lightgray;
     }
+    .vis-node.vis-shape-box {
+      border-radius: 5px;
+      padding: 8px 15px;
+    }
   </style>
 </head>
 <body>
@@ -18,20 +22,14 @@
   <div id="mynetwork"></div>
 
   <script type="text/javascript">
-    // Data to initialize the network
-    const nodesData = [
-      { id: 1, label: 'Management', level: 0 },
-    ];
+    const nodesData = [{ id: 1, label: 'Management', level: 0, shape: 'box', color: '#f0f8ff' }];
     const edgesData = [];
 
     const nodes = new vis.DataSet(nodesData);
     const edges = new vis.DataSet(edgesData);
 
     const container = document.getElementById('mynetwork');
-    const data = {
-      nodes: nodes,
-      edges: edges
-    };
+    const data = { nodes: nodes, edges: edges };
     const options = {
       layout: {
         hierarchical: {
@@ -39,49 +37,99 @@
           levelSeparation: 80,
           nodeSpacing: 150,
           treeSpacing: 100,
-          direction: 'UD', // Up-Down direction
+          direction: 'UD',
           sortMethod: 'directed'
         }
       },
+      nodes: {
+        shape: 'box',
+        margin: 10,
+        font: { size: 14, face: 'arial' },
+        borderWidth: 2,
+        shadow: true
+      },
       edges: {
-        arrows: {
-          to: { enabled: true, scaleFactor: 0.5 }
-        }
+        arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+        smooth: { type: 'cubicBezier' }
       },
       interaction: {
         dragNodes: true,
-        selectable: true
+        selectable: true,
+        hover: true
       }
     };
 
     const network = new vis.Network(container, data, options);
-
-    // Counter for generating new node IDs
     let nodeIdCounter = nodesData.length + 1;
+    let selectedNodeId = null;
 
-    // Event handler for clicking on a node
     network.on("click", function (params) {
       if (params.nodes.length === 1) {
-        const clickedNodeId = params.nodes[0];
-        const clickedNode = nodes.get(clickedNodeId);
-
-        // Prompt the user for the new sublevel item's name
-        const newItemName = prompt("Enter the name of the new item under '" + clickedNode.label + "':");
-
-        if (newItemName) {
-          // Add the new node
-          const newId = nodeIdCounter++;
-          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1 });
-
-          // Add an edge connecting the clicked node to the new node
-          edges.add({ from: clickedNodeId, to: newId });
-
-          // Optionally, you might want to adjust the layout after adding nodes
-          network.fit();
-        }
+        selectedNodeId = params.nodes[0];
+      } else {
+        selectedNodeId = null;
       }
     });
+
+    function addSublevelItem() {
+      if (selectedNodeId) {
+        const clickedNode = nodes.get(selectedNodeId);
+        const newItemName = prompt("Enter the name of the new item under '" + clickedNode.label + "':");
+        if (newItemName) {
+          const newId = nodeIdCounter++;
+          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1, shape: 'box', color: '#ffffff' });
+          edges.add({ from: selectedNodeId, to: newId });
+          network.fit();
+        }
+      } else {
+        alert("Please select a node first to add a sublevel item.");
+      }
+    }
+
+    function renameNode() {
+      if (selectedNodeId) {
+        const currentNode = nodes.get(selectedNodeId);
+        const newName = prompt("Enter the new name for '" + currentNode.label + "':", currentNode.label);
+        if (newName && newName !== currentNode.label) {
+          nodes.update({ id: selectedNodeId, label: newName });
+        }
+      } else {
+        alert("Please select a node to rename.");
+      }
+    }
+
+    function deleteNode() {
+      if (selectedNodeId) {
+        if (confirm("Are you sure you want to delete '" + nodes.get(selectedNodeId).label + "' and its connections?")) {
+          const connectedEdges = network.getConnectedEdges(selectedNodeId);
+          edges.remove(connectedEdges);
+          nodes.remove(selectedNodeId);
+          selectedNodeId = null;
+        }
+      } else {
+        alert("Please select a node to delete.");
+      }
+    }
+
+    function changeNodeColor() {
+      if (selectedNodeId) {
+        const currentColor = nodes.get(selectedNodeId).color || '#ffffff';
+        const newColor = prompt("Enter a new color for '" + nodes.get(selectedNodeId).label + "' (e.g., red, #00FF00):", currentColor);
+        if (newColor) {
+          nodes.update({ id: selectedNodeId, color: newColor });
+        }
+      } else {
+        alert("Please select a node to change its color.");
+      }
+    }
   </script>
+
+  <div>
+    <button onclick="addSublevelItem()">Add Sublevel Item</button>
+    <button onclick="renameNode()">Rename Node</button>
+    <button onclick="deleteNode()">Delete Node</button>
+    <button onclick="changeNodeColor()">Change Node Color</button>
+  </div>
 
 </body>
 </html>
