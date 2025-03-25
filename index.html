@@ -22,7 +22,7 @@
   <div id="mynetwork"></div>
 
   <script type="text/javascript">
-    const nodesData = [{ id: 1, label: 'Management', level: 0, shape: 'box', color: '#f0f8ff' }];
+    const nodesData = [{ id: 1, label: 'StrasGene', level: 0, shape: 'box', color: '#f0f8ff' }];
     const edgesData = [];
 
     const nodes = new vis.DataSet(nodesData);
@@ -129,6 +129,20 @@
   localStorage.setItem('networkData', dataToStore);
   alert('Network data saved to local storage.');
 }
+    function loadData() {
+  const storedData = localStorage.getItem('networkData');
+  if (storedData) {
+    const parsedData = JSON.parse(storedData);
+    nodes.clear(); // Clear existing nodes
+    edges.clear(); // Clear existing edges
+    nodes.add(parsedData.nodes); // Add the loaded nodes
+    edges.add(parsedData.edges); // Add the loaded edges
+    network.fit(); // Redraw the network
+    alert('Network data loaded from local storage.');
+  } else {
+    alert('No saved network data found in local storage.');
+  }
+}
   </script>
 
   <div>
@@ -136,6 +150,7 @@
     <button onclick="renameNode()">Rename Node</button>
     <button onclick="deleteNode()">Delete Node</button>
     <button onclick="changeNodeColor()">Change Node Color</button>
+    <button onclick="loadData()">Load</button>
     <button onclick="saveData()">Save</button>
   </div>
 
