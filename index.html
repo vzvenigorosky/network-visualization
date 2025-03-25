@@ -23,7 +23,7 @@
 
   <script type="text/javascript">
     const nodesData = [{ id: 1, label: 'StrasGene', level: 0, shape: 'box', color: '#f0f8ff', expanded: true, fixed: false }];
-    const edgesData = [];
+    const edgesData =;
 
     const nodes = new vis.DataSet(nodesData);
     const edges = new vis.DataSet(edgesData);
@@ -169,7 +169,7 @@
     }
 
     function getDescendantNodes(nodeId) {
-      const descendants = [];
+      const descendants =;
       const childEdges = edges.get({ filter: (edge) => edge.from === nodeId });
       childEdges.forEach(edge => {
         descendants.push(edge.to);
@@ -208,6 +208,20 @@
       }
     }
 
+    function raiseNodeHigher() {
+      if (selectedNodeId) {
+        const node = nodes.get(selectedNodeId);
+        if (node && node.level !== undefined && node.level > 0) {
+          nodes.update({ id: selectedNodeId, level: node.level - 1 });
+          network.fit();
+        } else {
+          alert("Selected node does not have a level property, is the root node, or is already at the highest level.");
+        }
+      } else {
+        alert("Please select a node to raise higher.");
+      }
+    }
+
     function saveData() {
       const nodesToSave = nodes.get();
       const edgesToSave = edges.get();
@@ -242,6 +256,7 @@
     <button onclick="freezeNodePosition()">Freeze Node</button>
     <button onclick="unfreezeNodePosition()">Unfreeze Node</button>
     <button onclick="dropNodeLower()">Drop Node Lower</button>
+    <button onclick="raiseNodeHigher()">Raise Node Higher</button>
     <button onclick="saveData()">Save</button>
     <button onclick="loadData()">Load</button>
   </div>
