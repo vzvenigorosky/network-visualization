@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Network Consultation</title>
+  <title>Cartographie StrasGene</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <style>
@@ -14,17 +14,20 @@
       border-radius: 5px;
       padding: 8px 15px;
     }
+    .vis-node.vis-selectable:hover {
+      cursor: pointer; /* Indicate that nodes are clickable */
+    }
   </style>
 </head>
 <body>
 
-  <h1>Network Consultation</h1>
+  <h1>Cartographie StrasGene</h1>
   <div id="mynetwork"></div>
 
   <script type="text/javascript">
-    const finalNodesData = [{"id":1,"label":"StrasGene","level":0,"shape":"box","color":"lightblue","expanded":true,"fixed":true},{"id":2,"label":"Management","level":1,"shape":"box","color":"purple","expanded":true,"fixed":true},{"id":3,"label":"Réalisations","level":1,"shape":"box","color":"green","expanded":true,"fixed":true},{"id":4,"label":"Support","level":1,"shape":"box","color":"grey","expanded":false},{"id":5,"label":"M1 - OGL","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":6,"label":"M2 - SMQ","level":2,"shape":"box","color":"#ffffff","expanded":false,"hidden":false,"fixed":true},{"id":7,"label":"R1 - SEA","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false,"fixed":true},{"id":8,"label":"R2 - ANA","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":9,"label":"R3 - EXP","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":10,"label":"S1 - ACF","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":12,"label":"S2 - EQM","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":13,"label":"S3 - CLI","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":14,"label":"S4 - LIT","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":15,"label":"S5 - STO","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":16,"label":"S6 - HSE","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":17,"label":"S7 - GRH","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":18,"label":"Connaître l'emplacement des scellés","level":3,"shape":"box","color":"#ffffff","expanded":true,"hidden":false,"fixed":false},{"id":19,"label":"Suivre le déroulement d'une affaire","level":4,"shape":"box","color":"#ffffff","expanded":false,"hidden":false,"fixed":false},{"id":20,"label":"Gérer la documentation","level":3,"shape":"box","color":"#ffffff","expanded":true,"fixed":false},{"id":21,"label":"Définir les règles de rédaction","level":4,"shape":"box","color":"#ffffff","expanded":true,"fixed":false},{"id":22,"label":"Enregistrer les événements","level":5,"shape":"box","color":"#ffffff","expanded":true,"fixed":false}]
+    const finalNodesData = [{"id":1,"label":"StrasGene","level":0,"shape":"box","color":"lightblue","expanded":true,"fixed":true},{"id":2,"label":"Management","level":1,"shape":"box","color":"purple","expanded":true,"fixed":true, "link": "https://docs.google.com/document/d/1DWlvLl9cU0FJEJgxdM2y6mxSC9_MFysjbon7-r9iFik/edit?usp=sharing"}, {"id":3,"label":"Réalisations","level":1,"shape":"box","color":"green","expanded":true,"fixed":true},{"id":4,"label":"Support","level":1,"shape":"box","color":"grey","expanded":false},{"id":5,"label":"M1 - OGL","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":6,"label":"M2 - SMQ","level":2,"shape":"box","color":"#ffffff","expanded":false,"hidden":false,"fixed":true, "link": "https://drive.google.com/your_smq_doc"}, {"id":7,"label":"R1 - SEA","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false,"fixed":true},{"id":8,"label":"R2 - ANA","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":9,"label":"R3 - EXP","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":false},{"id":10,"label":"S1 - ACF","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":12,"label":"S2 - EQM","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":13,"label":"S3 - CLI","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":14,"label":"S4 - LIT","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":15,"label":"S5 - STO","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":16,"label":"S6 - HSE","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":17,"label":"S7 - GRH","level":2,"shape":"box","color":"#ffffff","expanded":true,"hidden":true},{"id":18,"label":"Connaître l'emplacement des scellés","level":3,"shape":"box","color":"#ffffff","expanded":true,"hidden":false,"fixed":false, "link": "https://drive.google.com/your_scelles_doc"},{"id":19,"label":"Suivre le déroulement d'une affaire","level":4,"shape":"box","color":"#ffffff","expanded":false,"hidden":false,"fixed":false},{"id":20,"label":"Gérer la documentation","level":3,"shape":"box","color":"#ffffff","expanded":true,"fixed":false},{"id":21,"label":"Définir les règles de rédaction","level":4,"shape":"box","color":"#ffffff","expanded":true,"fixed":false},{"id":22,"label":"Enregistrer les événements","level":5,"shape":"box","color":"#ffffff","expanded":true,"fixed":false}]
     const finalEdgesData = [{"from":1,"to":2,"id":"753d4213-7465-4708-b42e-81468946f956"},{"from":1,"to":3,"id":"7a3e4546-9074-4a67-9655-1c95b6da5513"},{"from":1,"to":4,"id":"96f0b97e-86be-4a5a-85be-51cc219407ac"},{"from":2,"to":5,"id":"152d3f1f-893a-428b-9e07-52cfe6314314","hidden":false},{"from":2,"to":6,"id":"a68bb15c-3b4c-40af-85c0-46db97e7b7ce","hidden":false},{"from":3,"to":7,"id":"61b056a7-2852-4112-99b9-f0d2bd03592e","hidden":false},{"from":3,"to":8,"id":"fc10233f-4e10-41c1-ac1e-be22c8e79121","hidden":false},{"from":3,"to":9,"id":"bf4de181-e97a-46aa-880c-41797400a22b","hidden":false},{"from":4,"to":10,"id":"2fa01594-1899-460c-883b-29b90dde33ea","hidden":true},{"from":4,"to":12,"id":"fb6da970-f92c-479a-8c92-9890415198cb","hidden":true},{"from":4,"to":13,"id":"6258cae3-65f3-4597-a357-3346e4401fe9","hidden":true},{"from":4,"to":14,"id":"30291190-2400-415c-8a89-98e08e9180bc","hidden":true},{"from":4,"to":15,"id":"7b03d3c2-66f2-40d2-8e9b-cbfaf425a54f","hidden":true},{"from":4,"to":16,"id":"51a745e3-7079-4370-802b-bdc57b76229c","hidden":true},{"from":4,"to":17,"id":"6bde66bf-23b7-4896-bcb2-1daf2f6d0553","hidden":true},{"from":7,"to":18,"id":"3965b2d7-3737-4145-a1c3-6113e9fcb1b6","hidden":false},{"from":7,"to":19,"id":"70d778fd-3cb2-4a19-bce1-be6834e4db21","hidden":false},{"from":6,"to":20,"id":"2a5fe26b-8533-4ed0-a226-dfea593d9b53"},{"from":6,"to":21,"id":"f535b236-4b43-4c7a-a4c7-758983a26cba"},{"from":6,"to":22,"id":"fde9b03a-341d-45b2-b644-8cd3a61d05c3"}]
-    
+
     const nodes = new vis.DataSet(finalNodesData);
     const edges = new vis.DataSet(finalEdgesData);
 
@@ -53,8 +56,8 @@
         smooth: { type: 'cubicBezier' }
       },
       interaction: {
-        dragNodes: false, // Prevent dragging
-        selectable: false, // Prevent selection (optional)
+        dragNodes: true, // Enable dragging nodes
+        selectable: true, // Enable selection for click event
         hover: true
       }
     };
@@ -65,6 +68,16 @@
       if (params.nodes.length === 1) {
         const nodeId = params.nodes[0];
         toggleCollapse(nodeId);
+      }
+    });
+
+    network.on("click", function (params) {
+      if (params.nodes.length === 1) {
+        const nodeId = params.nodes[0];
+        const clickedNode = nodes.get(nodeId);
+        if (clickedNode && clickedNode.link) {
+          window.open(clickedNode.link, '_blank'); // Open link in a new tab
+        }
       }
     });
 
