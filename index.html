@@ -79,11 +79,17 @@
       }
     });
 
+    // Initialize nodeIdCounter to be one greater than the maximum initial ID
+    let nodeIdCounter = nodesData.reduce((maxId, node) => Math.max(maxId, node.id), 0) + 1;
+
     function addSublevelItem() {
       if (selectedNodeId) {
         const clickedNode = nodes.get(selectedNodeId);
         const newItemName = prompt("Enter the name of the new item under '" + clickedNode.label + "':");
         if (newItemName) {
+          // Get the current maximum ID and increment for the new node
+          const maxExistingId = nodes.getIds().reduce((max, id) => Math.max(max, id), 0);
+          nodeIdCounter = Math.max(nodeIdCounter, maxExistingId + 1);
           const newId = nodeIdCounter++;
           nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1, shape: 'box', color: '#ffffff', expanded: true });
           edges.add({ from: selectedNodeId, to: newId });
@@ -178,8 +184,10 @@
         const parsedData = JSON.parse(storedData);
         nodes.clear();
         edges.clear();
-        nodes.add(parsedData.nodes.map(node => ({ ...node, expanded: node.expanded === undefined ? true : node.expanded }))); // Ensure expanded property
+        nodes.add(parsedData.nodes.map(node => ({ ...node, expanded: node.expanded === undefined ? true : node.expanded })));
         edges.add(parsedData.edges);
+        // Update nodeIdCounter after loading data
+        nodeIdCounter = nodes.getIds().reduce((max, id) => Math.max(max, id), 0) + 1;
         network.fit();
         alert('Network data loaded from local storage.');
       } else {
