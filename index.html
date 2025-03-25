@@ -1,234 +1,86 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Interactive Network File Tree</title>
-<style>
-  body { font-family: sans-serif; }
-  .node {
-    border: 1px solid #ccc;
-    padding: 8px;
-    margin: 5px;
-    border-radius: 5px;
-    display: inline-block;
-    cursor: grab;
-  }
-  .category { background-color: #f0f8ff; }
-  .process { background-color: #e0ffff; }
-  .activity { background-color: #f0fff0; }
-  .procedure { background-color: #fffacd; }
-  .document-support { background-color: #faebd7; font-size: 0.8em; }
-  .document-modele { background-color: #afeeee; font-size: 0.8em; }
-
-  .network-container {
-    position: relative;
-    border: 1px solid #eee;
-    min-height: 400px;
-  }
-
-  .link {
-    position: absolute;
-    background-color: #bbb;
-    height: 1px;
-  }
-</style>
+  <title>Interactive Network Graph</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <style>
+    #mynetwork {
+      width: 100%;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+  </style>
 </head>
 <body>
 
-  <h1>Interactive Network File Tree</h1>
+  <h1>Interactive Network Graph</h1>
+  <div id="mynetwork"></div>
 
-  <div id="network-container" class="network-container">
-    </div>
+  <script type="text/javascript">
+    // Data to initialize the network
+    const nodesData = [
+      { id: 1, label: 'Management', level: 0 },
+    ];
+    const edgesData = [];
 
-  <script>
-    const networkContainer = document.getElementById('network-container');
-    const nodes = [];
-    const links = [];
-    let nodeIdCounter = 0;
-    const nodeMap = {}; // To easily find nodes by a combined key
+    const nodes = new vis.DataSet(nodesData);
+    const edges = new vis.DataSet(edgesData);
 
-    function createNode(name, type, parentId = null) {
-      const id = nodeIdCounter++;
-      const newNode = { id, name, type, parentId, x: 50 + Math.random() * 300, y: 50 + Math.random() * 200 };
-      nodes.push(newNode);
-      nodeMap[name] = newNode; // Use the full path as the key
-      return id;
-    }
-
-    function createLink(sourceId, targetId) {
-      links.push({ source: sourceId, target: targetId });
-    }
-
-    function processTableData(text, delimiter) {
-      const lines = text.trim().split('\n');
-      const header = lines[0].split(delimiter).map(h => h.trim());
-      const dataRows = lines.slice(1);
-
-      const buildNodeKey = (row) => `${row[0]}-${row[1]}-${row[2]}-${row[3]}`;
-
-      const ensureNodeExists = (path, type) => {
-        if (!nodeMap[path]) {
-          const parts = path.split('-');
-          const name = parts[parts.length - 1];
-          let parentPath = parts.slice(0, -1).join('-');
-          const parentNode = parentPath ? nodeMap[parentPath] : null;
-          const parentId = parentNode ? parentNode.id : null;
-          createNode(name, type, parentId);
-          if (parentId !== null && parentNode) {
-            createLink(parentId, nodeMap[path].id);
-          }
+    const container = document.getElementById('mynetwork');
+    const data = {
+      nodes: nodes,
+      edges: edges
+    };
+    const options = {
+      layout: {
+        hierarchical: {
+          enabled: true,
+          levelSeparation: 80,
+          nodeSpacing: 150,
+          treeSpacing: 100,
+          direction: 'UD', // Up-Down direction
+          sortMethod: 'directed'
         }
-        return nodeMap[path].id;
-      };
-
-      dataRows.forEach(line => {
-        const values = line.split(delimiter).map(v => v.trim());
-        const category = values[0];
-        const process = values[1];
-        const activity = values[2];
-        const procedure = values[3];
-        const support = values[4];
-        const modele = values[5];
-
-        // Ensure Category node
-        const categoryPath = category;
-        ensureNodeExists(categoryPath, 'category');
-
-        // Ensure Process node
-        if (process) {
-          const processPath = `${category}-${process}`;
-          ensureNodeExists(processPath, 'process');
-          if (nodeMap[categoryPath] && !links.some(l => l.source === nodeMap[categoryPath].id && l.target === nodeMap[processPath].id)) {
-            createLink(nodeMap[categoryPath].id, nodeMap[processPath].id);
-          }
-
-          // Ensure Activity node
-          if (activity) {
-            const activityPath = `${category}-${process}-${activity}`;
-            ensureNodeExists(activityPath, 'activity');
-            if (nodeMap[processPath] && !links.some(l => l.source === nodeMap[processPath].id && l.target === nodeMap[activityPath].id)) {
-              createLink(nodeMap[processPath].id, nodeMap[activityPath].id);
-            }
-
-            // Ensure Procedure node
-            if (procedure) {
-              const procedurePath = `${category}-${process}-${activity}-${procedure}`;
-              ensureNodeExists(procedurePath, 'procedure');
-              if (nodeMap[activityPath] && !links.some(l => l.source === nodeMap[activityPath].id && l.target === nodeMap[procedurePath].id)) {
-                createLink(nodeMap[activityPath].id, nodeMap[procedurePath].id);
-              }
-
-              // Handle Support
-              if (support) {
-                const supportPath = `${procedurePath}-${support}`;
-                ensureNodeExists(supportPath, 'document-support');
-                if (nodeMap[procedurePath] && !links.some(l => l.source === nodeMap[procedurePath].id && l.target === nodeMap[supportPath].id)) {
-                  createLink(nodeMap[procedurePath].id, nodeMap[supportPath].id);
-                }
-              }
-
-              // Handle Modele
-              if (modele) {
-                const modelePath = `${procedurePath}-${modele}`;
-                ensureNodeExists(modelePath, 'document-modele');
-                if (nodeMap[procedurePath] && !links.some(l => l.source === nodeMap[procedurePath].id && l.target === nodeMap[modelePath].id)) {
-                  createLink(nodeMap[procedurePath].id, nodeMap[modelePath].id);
-                }
-              }
-            }
-          }
+      },
+      edges: {
+        arrows: {
+          to: { enabled: true, scaleFactor: 0.5 }
         }
-      });
-    }
+      },
+      interaction: {
+        dragNodes: true,
+        selectable: true
+      }
+    };
 
-    function renderNetwork() {
-      networkContainer.innerHTML = '';
-      nodes.forEach(node => {
-        const nodeDiv = document.createElement('div');
-        nodeDiv.classList.add('node', node.type);
-        nodeDiv.textContent = node.name;
-        nodeDiv.style.position = 'absolute';
-        nodeDiv.style.left = `${node.x}px`;
-        nodeDiv.style.top = `${node.y}px`;
-        nodeDiv.dataset.nodeId = node.id;
+    const network = new vis.Network(container, data, options);
 
-        let isDragging = false;
-        let offsetX, offsetY;
+    // Counter for generating new node IDs
+    let nodeIdCounter = nodesData.length + 1;
 
-        nodeDiv.addEventListener('mousedown', (e) => {
-          isDragging = true;
-          offsetX = e.clientX - nodeDiv.getBoundingClientRect().left;
-          offsetY = e.clientY - nodeDiv.getBoundingClientRect().top;
-          nodeDiv.style.cursor = 'grabbing';
-        });
+    // Event handler for clicking on a node
+    network.on("click", function (params) {
+      if (params.nodes.length === 1) {
+        const clickedNodeId = params.nodes[0];
+        const clickedNode = nodes.get(clickedNodeId);
 
-        document.addEventListener('mousemove', (e) => {
-          if (!isDragging) return;
-          node.x = e.clientX - networkContainer.getBoundingClientRect().left - offsetX;
-          node.y = e.clientY - networkContainer.getBoundingClientRect().top - offsetY;
-          nodeDiv.style.left = `${node.x}px`;
-          nodeDiv.style.top = `${node.y}px`;
-          renderLinks();
-        });
+        // Prompt the user for the new sublevel item's name
+        const newItemName = prompt("Enter the name of the new item under '" + clickedNode.label + "':");
 
-        document.addEventListener('mouseup', () => {
-          if (!isDragging) return;
-          isDragging = false;
-          nodeDiv.style.cursor = 'grab';
-        });
+        if (newItemName) {
+          // Add the new node
+          const newId = nodeIdCounter++;
+          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1 });
 
-        networkContainer.appendChild(nodeDiv);
-      });
-      renderLinks();
-    }
+          // Add an edge connecting the clicked node to the new node
+          edges.add({ from: clickedNodeId, to: newId });
 
-    function renderLinks() {
-      const existingLinks = networkContainer.querySelectorAll('.link');
-      existingLinks.forEach(link => link.remove());
-
-      links.forEach(linkData => {
-        const sourceNode = nodes.find(n => n.id === linkData.source);
-        const targetNode = nodes.find(n => n.id === linkData.target);
-
-        if (sourceNode && targetNode) {
-          const linkDiv = document.createElement('div');
-          linkDiv.classList.add('link');
-
-          const sourceRect = {
-            x: sourceNode.x + sourceNode.offsetWidth / 2,
-            y: sourceNode.y + sourceNode.offsetHeight / 2
-          };
-          const targetRect = {
-            x: targetNode.x + targetNode.offsetWidth / 2,
-            y: targetNode.y + targetNode.offsetHeight / 2
-          };
-
-          const dx = targetRect.x - sourceRect.x;
-          const dy = targetRect.y - sourceRect.y;
-          const length = Math.sqrt(dx * dx + dy * dy);
-          const angle = Math.atan2(dy, dx);
-
-          linkDiv.style.width = `${length}px`;
-          linkDiv.style.left = `${sourceRect.x}px`;
-          linkDiv.style.top = `${sourceRect.y - 0.5}px`;
-          linkDiv.style.transformOrigin = '0 0';
-          linkDiv.style.transform = `rotate(${angle}rad)`;
-
-          networkContainer.appendChild(linkDiv);
+          // Optionally, you might want to adjust the layout after adding nodes
+          network.fit();
         }
-      });
-    }
-
-    // Fetch the text data
-    fetch('data.txt')
-      .then(response => response.text())
-      .then(textData => {
-        processTableData(textData, ';'); // Specify the delimiter
-        renderNetwork();
-      })
-      .catch(error => {
-        console.error('Error loading text data:', error);
-        networkContainer.textContent = 'Error loading network data.';
-      });
+      }
+    });
   </script>
 
 </body>
