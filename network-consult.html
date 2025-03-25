@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Network Consultation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+  <style>
+    #mynetwork {
+      width: 100%;
+      height: 600px;
+      border: 1px solid lightgray;
+    }
+    .vis-node.vis-shape-box {
+      border-radius: 5px;
+      padding: 8px 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Network Consultation</h1>
+  <div id="mynetwork"></div>
+
+  <script type="text/javascript">
+    const finalNodesData = [{"id":1,"label":"StrasGene","level":0,"shape":"box","color":"lightblue","expanded":true},{"id":2,"label":"Management","level":1,"shape":"box","color":"purple","expanded":true},{"id":3,"label":"Réalisations","level":1,"shape":"box","color":"green","expanded":true},{"id":4,"label":"Support","level":1,"shape":"box","color":"grey","expanded":false},{"id":5,"label":"M1 - OGL","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":6,"label":"M2 - SMQ","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":7,"label":"R1 - SEA","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":8,"label":"R2 - ANA","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":9,"label":"R3 - EXP","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":10,"label":"S1 - ACF","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":12,"label":"S2 - EQM","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":13,"label":"S3 - CLI","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":14,"label":"S4 - LIT","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":15,"label":"S5 - STO","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":16,"label":"S6 - HSE","level":2,"shape":"box","color":"#ffffff","expanded":true},{"id":17,"label":"S7 - GRH","level":2,"shape":"box","color":"#ffffff","expanded":true}];
+    const finalEdgesData = [{"from":1,"to":2,"id":"753d4213-7465-4708-b42e-81468946f956"},{"from":1,"to":3,"id":"7a3e4546-9074-4a67-9655-1c95b6da5513"},{"from":1,"to":4,"id":"96f0b97e-86be-4a5a-85be-51cc219407ac"},{"from":2,"to":5,"id":"152d3f1f-893a-428b-9e07-52cfe6314314"},{"from":2,"to":6,"id":"a68bb15c-3b4c-40af-85c0-46db97e7b7ce"},{"from":3,"to":7,"id":"61b056a7-2852-4112-99b9-f0d2bd03592e"},{"from":3,"to":8,"id":"fc10233f-4e10-41c1-ac1e-be22c8e79121"},{"from":3,"to":9,"id":"bf4de181-e97a-46aa-880c-41797400a22b"},{"from":4,"to":10,"id":"2fa01594-1899-460c-883b-29b90dde33ea"},{"from":4,"to":12,"id":"fb6da970-f92c-479a-8c92-9890415198cb"},{"from":4,"to":13,"id":"6258cae3-65f3-4597-a357-3346e4401fe9"},{"from":4,"to":14,"id":"30291190-2400-415c-8a89-98e08e9180bc"},{"from":4,"to":15,"id":"7b03d3c2-66f2-40d2-8e9b-cbfaf425a54f"},{"from":4,"to":16,"id":"51a745e3-7079-4370-802b-bdc57b76229c"},{"from":4,"to":17,"id":"6bde66bf-23b7-4896-bcb2-1daf2f6d0553"}];
+
+    const nodes = new vis.DataSet(finalNodesData);
+    const edges = new vis.DataSet(finalEdgesData);
+
+    const container = document.getElementById('mynetwork');
+    const data = { nodes: nodes, edges: edges };
+    const options = {
+      layout: {
+        hierarchical: {
+          enabled: true,
+          levelSeparation: 80,
+          nodeSpacing: 150,
+          treeSpacing: 100,
+          direction: 'UD',
+          sortMethod: 'hubsize'
+        }
+      },
+      nodes: {
+        shape: 'box',
+        margin: 10,
+        font: { size: 14, face: 'arial' },
+        borderWidth: 2,
+        shadow: true
+      },
+      edges: {
+        arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+        smooth: { type: 'cubicBezier' }
+      },
+      interaction: {
+        dragNodes: false, // Prevent dragging
+        selectable: false, // Prevent selection (optional)
+        hover: true
+      }
+    };
+
+    const network = new vis.Network(container, data, options);
+
+    network.on("doubleClick", function (params) {
+      if (params.nodes.length === 1) {
+        const nodeId = params.nodes[0];
+        toggleCollapse(nodeId);
+      }
+    });
+
+    function toggleCollapse(nodeId) {
+      const node = nodes.get(nodeId);
+      if (node) {
+        node.expanded = !node.expanded;
+        nodes.update(node);
+        updateVisibility(nodeId, node.expanded);
+      }
+    }
+
+    function updateVisibility(parentId, isVisible) {
+      const childEdges = edges.get({ filter: (edge) => edge.from === parentId });
+      childEdges.forEach(edge => {
+        const childNode = nodes.get(edge.to);
+        if (childNode) {
+          nodes.update({ id: childNode.id, hidden: !isVisible });
+          updateVisibility(childNode.id, isVisible && (childNode.expanded === undefined || childNode.expanded));
+        }
+        edges.update({ id: edge.id, hidden: !isVisible });
+      });
+      network.fit();
+    }
+  </script>
+
+</body>
+</html>
