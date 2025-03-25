@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Cartographie StrasGene</title>
+  <title>Interactive Network Graph</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" type="text/css" />
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <style>
@@ -10,26 +11,38 @@
       height: 600px;
       border: 1px solid lightgray;
     }
+
     .vis-node.vis-shape-box {
       border-radius: 5px;
       padding: 8px 15px;
     }
   </style>
 </head>
+
 <body>
 
-  <h1>Cartographie StrasGene</h1>
+  <h1>Interactive Network Graph</h1>
   <div id="mynetwork"></div>
 
   <script type="text/javascript">
-    const nodesData = [{ id: 1, label: 'StrasGene', level: 0, shape: 'box', color: '#f0f8ff', expanded: true }];
-    const edgesData = [];
+    const nodesData = [{
+      id: 1,
+      label: 'Management',
+      level: 0,
+      shape: 'box',
+      color: '#f0f8ff',
+      expanded: true
+    }];
+    const edgesData =;
 
     const nodes = new vis.DataSet(nodesData);
     const edges = new vis.DataSet(edgesData);
 
     const container = document.getElementById('mynetwork');
-    const data = { nodes: nodes, edges: edges };
+    const data = {
+      nodes: nodes,
+      edges: edges
+    };
     const options = {
       layout: {
         hierarchical: {
@@ -39,29 +52,47 @@
           treeSpacing: 100,
           direction: 'UD',
           sortMethod: 'directed',
-          sortMethod: 'hubsize' // More stable layout for dynamic changes
+          sortMethod: 'hubsize'
         }
       },
       nodes: {
         shape: 'box',
         margin: 10,
-        font: { size: 14, face: 'arial' },
+        font: {
+          size: 14,
+          face: 'arial'
+        },
         borderWidth: 2,
         shadow: true
       },
       edges: {
-        arrows: { to: { enabled: true, scaleFactor: 0.5 } },
-        smooth: { type: 'cubicBezier' }
+        arrows: {
+          to: {
+            enabled: true,
+            scaleFactor: 0.5
+          }
+        },
+        smooth: {
+          type: 'cubicBezier'
+        }
       },
       interaction: {
         dragNodes: true,
         selectable: true,
         hover: true
+      },
+      physics: {
+        enabled: true, // Enable physics
+        stabilization: {
+          enabled: true,
+          iterations: 100,
+          fit: true
+        }
       }
     };
 
     const network = new vis.Network(container, data, options);
-   
+    let nodeIdCounter = nodesData.reduce((maxId, node) => Math.max(maxId, node.id), 0) + 1;
     let selectedNodeId = null;
 
     network.on("click", function (params) {
@@ -79,20 +110,80 @@
       }
     });
 
-    // Initialize nodeIdCounter to be one greater than the maximum initial ID
-    let nodeIdCounter = nodesData.reduce((maxId, node) => Math.max(maxId, node.id), 0) + 1;
+    // Handle node dragging
+    network.on("dragEnd", function (params) {
+      if (params.nodes.length === 1) {
+        const nodeId = params.nodes[0];
+        const node = nodes.get(nodeId);
+        if (node.fixedPosition) {
+          // If the node is pinned, update its fixed position
+          nodes.update({
+            id: nodeId,
+            x: params.pointer.canvas.x,
+            y: params.pointer.canvas.y,
+            fixed: {
+              x: true,
+              y: true
+            }
+          });
+        }
+      }
+    });
+
+    // Handle shift-click for pinning/unpinning
+    network.on("click", function (params) {
+      if (params.nodes.length === 1 && params.event.shiftKey) {
+        const nodeId = params.nodes[0];
+        const node = nodes.get(nodeId);
+        if (node) {
+          if (node.fixedPosition) {
+            // Unpin the node
+            nodes.update({
+              id: nodeId,
+              fixedPosition: undefined,
+              fixed: {
+                x: false,
+                y: false
+              }
+            });
+          } else {
+            // Pin the node
+            nodes.update({
+              id: nodeId,
+              fixedPosition: {
+                x: params.pointer.canvas.x,
+                y: params.pointer.canvas.y
+              },
+              fixed: {
+                x: true,
+                y: true
+              }
+            });
+          }
+        }
+      }
+    });
 
     function addSublevelItem() {
       if (selectedNodeId) {
         const clickedNode = nodes.get(selectedNodeId);
         const newItemName = prompt("Enter the name of the new item under '" + clickedNode.label + "':");
         if (newItemName) {
-          // Get the current maximum ID and increment for the new node
           const maxExistingId = nodes.getIds().reduce((max, id) => Math.max(max, id), 0);
           nodeIdCounter = Math.max(nodeIdCounter, maxExistingId + 1);
           const newId = nodeIdCounter++;
-          nodes.add({ id: newId, label: newItemName, level: (clickedNode.level || 0) + 1, shape: 'box', color: '#ffffff', expanded: true });
-          edges.add({ from: selectedNodeId, to: newId });
+          nodes.add({
+            id: newId,
+            label: newItemName,
+            level: (clickedNode.level || 0) + 1,
+            shape: 'box',
+            color: '#ffffff',
+            expanded: true
+          });
+          edges.add({
+            from: selectedNodeId,
+            to: newId
+          });
           network.fit();
         }
       } else {
@@ -105,7 +196,10 @@
         const currentNode = nodes.get(selectedNodeId);
         const newName = prompt("Enter the new name for '" + currentNode.label + "':", currentNode.label);
         if (newName && newName !== currentNode.label) {
-          nodes.update({ id: selectedNodeId, label: newName });
+          nodes.update({
+            id: selectedNodeId,
+            label: newName
+          });
         }
       } else {
         alert("Please select a node to rename.");
@@ -131,7 +225,10 @@
         const currentColor = nodes.get(selectedNodeId).color || '#ffffff';
         const newColor = prompt("Enter a new color for '" + nodes.get(selectedNodeId).label + "' (e.g., red, #00FF00):", currentColor);
         if (newColor) {
-          nodes.update({ id: selectedNodeId, color: newColor });
+          nodes.update({
+            id: selectedNodeId,
+            color: newColor
+          });
         }
       } else {
         alert("Please select a node to change its color.");
@@ -148,21 +245,31 @@
     }
 
     function updateVisibility(parentId, isVisible) {
-      const childEdges = edges.get({ filter: (edge) => edge.from === parentId });
+      const childEdges = edges.get({
+        filter: (edge) => edge.from === parentId
+      });
       childEdges.forEach(edge => {
         const childNode = nodes.get(edge.to);
         if (childNode) {
-          nodes.update({ id: childNode.id, hidden: !isVisible });
+          nodes.update({
+            id: childNode.id,
+            hidden: !isVisible
+          });
           updateVisibility(childNode.id, isVisible && (childNode.expanded === undefined || childNode.expanded));
         }
-        edges.update({ id: edge.id, hidden: !isVisible });
+        edges.update({
+          id: edge.id,
+          hidden: !isVisible
+        });
       });
-      network.fit(); // Adjust view after collapsing/expanding
+      network.fit();
     }
 
     function getDescendantNodes(nodeId) {
-      const descendants = [];
-      const childEdges = edges.get({ filter: (edge) => edge.from === nodeId });
+      const descendants =;
+      const childEdges = edges.get({
+        filter: (edge) => edge.from === nodeId
+      });
       childEdges.forEach(edge => {
         descendants.push(edge.to);
         descendants.push(...getDescendantNodes(edge.to));
@@ -173,7 +280,10 @@
     function saveData() {
       const nodesToSave = nodes.get();
       const edgesToSave = edges.get();
-      const dataToStore = JSON.stringify({ nodes: nodesToSave, edges: edgesToSave });
+      const dataToStore = JSON.stringify({
+        nodes: nodesToSave,
+        edges: edgesToSave
+      });
       localStorage.setItem('networkData', dataToStore);
       alert('Network data saved to local storage.');
     }
@@ -184,9 +294,11 @@
         const parsedData = JSON.parse(storedData);
         nodes.clear();
         edges.clear();
-        nodes.add(parsedData.nodes.map(node => ({ ...node, expanded: node.expanded === undefined ? true : node.expanded })));
+        nodes.add(parsedData.nodes.map(node => ({
+          ...node,
+          expanded: node.expanded === undefined ? true : node.expanded
+        })));
         edges.add(parsedData.edges);
-        // Update nodeIdCounter after loading data
         nodeIdCounter = nodes.getIds().reduce((max, id) => Math.max(max, id), 0) + 1;
         network.fit();
         alert('Network data loaded from local storage.');
@@ -206,4 +318,5 @@
   </div>
 
 </body>
+
 </html>
