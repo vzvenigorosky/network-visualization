@@ -67,6 +67,27 @@
     network.on("click", function (params) {
       if (params.nodes.length === 1) {
         selectedNodeId = params.nodes[0];
+
+        // Check if Shift key is pressed
+        if (params.event.shiftKey) {
+          // Toggle the pinned state (or fixed position) of the clicked node
+          const node = nodes.get(selectedNodeId);
+          const isPinned = node.fixed || false;
+
+          // Toggle the fixed state
+          nodes.update({
+            id: selectedNodeId,
+            fixed: !isPinned // Toggle the "pinned" state
+          });
+
+          // Optionally, you can update the node's appearance (e.g., change color) when pinned
+          nodes.update({
+            id: selectedNodeId,
+            color: !isPinned ? '#f0e68c' : '#f0f8ff' // Change color to indicate pinned state
+          });
+
+          console.log(`Node ${selectedNodeId} pinned: ${!isPinned}`);
+        }
       } else {
         selectedNodeId = null;
       }
